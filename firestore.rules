@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function currentUserId() {
+      return request.auth.uid;
+    }
+
+    function currentUserRole() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/profiles/$(currentUserId()))
+        ? get(/databases/$(database)/documents/profiles/$(currentUserId())).data.role
+        : null;
+    }
+
+    match /profiles/{userId} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && currentUserId() == userId;
+    }
+
+    match /cash_ledgers/{ledgerId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if signedIn() && currentUserRole() == "checker";
+    }
+
+    match /expenses/{expenseId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.creatorId == currentUserId()
+        && request.resource.data.status == "pending";
+      allow update: if signedIn() && (
+        currentUserRole() == "checker" ||
+        resource.data.creatorId == currentUserId()
+      );
+    }
+
+    match /push_tokens/{tokenId} {
+      allow read, write: if signedIn() && (
+        request.resource.data.userId == currentUserId() ||
+        resource.data.userId == currentUserId()
+      );
+    }
+  }
+}
