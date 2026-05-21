@@ -112,6 +112,7 @@ export function PettyCashProvider({
   session,
   realtimeEnabled,
 }: PropsWithChildren<{ session: AppSession | null; realtimeEnabled: boolean }>) {
+  const sessionUserId = session?.user.id ?? null;
   const [role, setRole] = useState<UserRole>("creator");
   const [expenses, setExpenses] = useState<Expense[]>(initialExpenses);
   const [ledger, setLedger] = useState<Ledger | null>(null);
@@ -221,7 +222,7 @@ export function PettyCashProvider({
   };
 
   useEffect(() => {
-    if (!realtimeEnabled || !session) {
+    if (!realtimeEnabled || !sessionUserId || !session) {
       setLoading(false);
       return;
     }
@@ -235,17 +236,17 @@ export function PettyCashProvider({
         Alert.alert("Sync error", message);
       })
       .finally(() => setLoading(false));
-  }, [realtimeEnabled, session]);
+  }, [realtimeEnabled, sessionUserId]);
 
   useEffect(() => {
-    if (!realtimeEnabled || !session) {
+    if (!realtimeEnabled || !sessionUserId) {
       return;
     }
 
     return subscribeToRealtime(async () => {
       await refreshRemoteData();
     });
-  }, [realtimeEnabled, session]);
+  }, [realtimeEnabled, sessionUserId]);
 
   const addExpense = async (draft: ExpenseDraft): Promise<boolean> => {
     const accountingHead = draft.accountingHead.trim();
