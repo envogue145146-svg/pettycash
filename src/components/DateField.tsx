@@ -1,12 +1,10 @@
 import React, { useMemo, useState } from "react";
 import {
   Modal,
-  Platform,
   Pressable,
   StyleProp,
   StyleSheet,
   Text,
-  TextInput,
   TextStyle,
   View,
   ViewStyle,
@@ -152,18 +150,6 @@ export function DateField({ value, onChange, placeholder, style, allowClear = fa
     () => buildCalendarDays(visibleMonth.year, visibleMonth.monthIndex),
     [visibleMonth.monthIndex, visibleMonth.year],
   );
-
-  if (Platform.OS === "web") {
-    return (
-      <TextInput
-        style={[styles.input, style]}
-        value={value}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        placeholderTextColor="#A38C77"
-      />
-    );
-  }
 
   return (
     <>
