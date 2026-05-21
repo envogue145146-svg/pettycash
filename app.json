@@ -1,0 +1,57 @@
+{
+  "expo": {
+    "name": "Petty Cash",
+    "slug": "petty-cash-mobile",
+    "version": "1.0.0",
+    "description": "Petty Cash helps teams capture expenses, attach bill photos, and manage approval workflows on the go.",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "icon": "./assets/icon.png",
+    "plugins": [
+      "expo-notifications",
+      "expo-asset"
+    ],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F4F1EA"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Allow Petty Cash to capture bill photos for expense vouchers.",
+        "NSPhotoLibraryUsageDescription": "Allow Petty Cash to attach bill images to expense entries."
+      },
+      "bundleIdentifier": "com.envogue.pettycash"
+    },
+    "android": {
+      "permissions": [
+        "CAMERA"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#F4F1EA"
+      },
+      "package": "com.envogue.pettycash"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/icon.png",
+      "name": "Petty Cash",
+      "shortName": "PettyCash",
+      "themeColor": "#07111F",
+      "backgroundColor": "#07111F"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "74a5a244-ca6b-48de-bab4-14caf5b41aaf"
+      }
+    },
+    "owner": "envogue"
+  }
+}
