@@ -17,7 +17,7 @@
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F4F1EA"
+      "backgroundColor": "#FAFAF8"
     },
     "ios": {
       "supportsTablet": true,
@@ -34,14 +34,14 @@
       ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#F4F1EA"
+        "backgroundColor": "#FAFAF8"
       },
       "package": "com.envogue.pettycash"
     },
     "web": {
       "bundler": "metro",
       "output": "single",
-      "favicon": "./assets/icon.png",
+      "favicon": "./assets/favicon.png",
       "name": "Petty Cash",
       "shortName": "PettyCash",
       "themeColor": "#07111F",
