@@ -17,7 +17,7 @@ type ExpenseCardProps = {
 
 export function ExpenseCard({ expense, role, onApprove, onReject, onExportVoucher, onDelete, onEdit }: ExpenseCardProps) {
   const [checkerNote, setCheckerNote] = useState(expense.checkerNote ?? "");
-  const [imageVisible, setImageVisible] = useState(Boolean(expense.billImageUrl));
+  const [imageVisible, setImageVisible] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editDraft, setEditDraft] = useState<ExpenseDraft>({
     accountingHead: expense.accountingHead ?? "",
@@ -151,6 +151,11 @@ export function ExpenseCard({ expense, role, onApprove, onReject, onExportVouche
         {expense.checkerNote ? <Text style={styles.comment}>Comment: {expense.checkerNote}</Text> : null}
 
         <View style={styles.utilityActions}>
+          {expense.billImageUrl ? (
+            <Pressable onPress={() => setImageVisible((current) => !current)} style={styles.secondaryButton}>
+              <Text style={styles.secondaryText}>{imageVisible ? "Hide Bill" : "View Bill"}</Text>
+            </Pressable>
+          ) : null}
           {expense.billImageUrl ? (
             <Pressable onPress={() => void openSlipLink()} style={styles.secondaryButton}>
               <Text style={styles.secondaryText}>Open Slip</Text>
