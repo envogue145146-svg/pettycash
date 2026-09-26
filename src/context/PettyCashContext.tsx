@@ -35,7 +35,13 @@ import {
   uploadBillImage,
 } from "../services/expenseService";
 import { exportBulkVouchers, exportVoucher, VoucherExportMode } from "../services/voucherService";
-import { AppSession, Expense, ExpenseDraft, ExpenseStatus, ImageSourceMode, Ledger, Profile, Summary, UserRole } from "../types";
+import {
+  createUserPayment,
+  deleteUserPayment,
+  fetchUserPayments,
+  subscribeToUserPayments,
+} from "../services/paymentService";
+import { AppSession, Expense, ExpenseDraft, ExpenseStatus, ImageSourceMode, Ledger, Profile, Summary, UserPayment, UserRole } from "../types";
 
 type PettyCashContextValue = {
   expenses: Expense[];
@@ -61,6 +67,9 @@ type PettyCashContextValue = {
   getExpenseFolioNumber: (expense: Expense) => string;
   exportExpenseVoucher: (expense: Expense) => Promise<void>;
   exportBulkExpenseVouchers: (selectedExpenses: Expense[], mode?: VoucherExportMode) => Promise<void>;
+  userPayments: UserPayment[];
+  recordUserPayment: (input: { userId: string; amount: number; paidOn: string; note?: string }) => Promise<boolean>;
+  removeUserPayment: (paymentId: string) => Promise<void>;
 };
 
 const PettyCashContext = createContext<PettyCashContextValue | undefined>(undefined);
@@ -122,6 +131,49 @@ export function PettyCashProvider({
   const [accountingHeads, setAccountingHeads] = useState<string[]>(["Petty Cash"]);
   const [syncIssue, setSyncIssue] = useState<string | null>(null);
   const refreshInFlightRef = useRef<Promise<void> | null>(null);
+  const [userPayments, setUserPayments] = useState<UserPayment[]>([]);
+
+  const refreshUserPayments = async () => {
+    try {
+      setUserPayments(await fetchUserPayments());
+    } catch {
+      // Payments are optional; the rest of the app keeps working without them.
+    }
+  };
+
+  useEffect(() => {
+    void refreshUserPayments();
+    if (!realtimeEnabled || !sessionUserId) {
+      return;
+    }
+    return subscribeToUserPayments(() => {
+      void refreshUserPayments();
+    });
+  }, [realtimeEnabled, sessionUserId]);
+
+  const recordUserPayment = async (input: { userId: string; amount: number; paidOn: string; note?: string }) => {
+    if (!input.userId || !Number.isFinite(input.amount) || input.amount <= 0 || !input.paidOn) {
+      Alert.alert("Invalid payment", "Enter a valid amount and date.");
+      return false;
+    }
+    try {
+      await createUserPayment(input);
+      await refreshUserPayments();
+      return true;
+    } catch (error) {
+      Alert.alert("Payment not saved", getFriendlyErrorMessage(error, "Unable to record payment."));
+      return false;
+    }
+  };
+
+  const removeUserPayment = async (paymentId: string) => {
+    try {
+      await deleteUserPayment(paymentId);
+      await refreshUserPayments();
+    } catch (error) {
+      Alert.alert("Payment not deleted", getFriendlyErrorMessage(error, "Unable to delete payment."));
+    }
+  };
 
   useEffect(() => {
     getSavedDraftImageUri()
@@ -777,6 +829,9 @@ export function PettyCashProvider({
         getExpenseFolioNumber,
         exportExpenseVoucher,
         exportBulkExpenseVouchers,
+        userPayments,
+        recordUserPayment,
+        removeUserPayment,
       }}
     >
       {children}

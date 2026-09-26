@@ -52,6 +52,15 @@ export type Ledger = {
   openingBalanceDate?: string;
 };
 
+export type UserPayment = {
+  id: string;
+  userId: string;
+  amount: number;
+  paidOn: string;
+  note?: string;
+  createdAt: string;
+};
+
 export type AuthFormMode = "signIn" | "signUp";
 
 export type ImageSourceMode = "camera" | "gallery";

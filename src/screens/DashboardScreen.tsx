@@ -10,6 +10,8 @@ import { SummaryCard } from "../components/SummaryCard";
 import { usePettyCash } from "../context/PettyCashContext";
 import { useSession } from "../context/SessionContext";
 import { signOut } from "../services/expenseService";
+import { LedgerScreen } from "./LedgerScreen";
+import { UserExpensesScreen } from "./UserExpensesScreen";
 
 export function DashboardScreen() {
   const { session } = useSession();
@@ -34,6 +36,7 @@ export function DashboardScreen() {
     exportExpenseVoucher,
     exportBulkExpenseVouchers,
   } = usePettyCash();
+  const [page, setPage] = useState<"home" | "ledger" | "users">("home");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [folioFrom, setFolioFrom] = useState("");
@@ -148,6 +151,14 @@ export function DashboardScreen() {
     );
   }
 
+  if (page === "ledger") {
+    return <LedgerScreen onBack={() => setPage("home")} />;
+  }
+
+  if (page === "users") {
+    return <UserExpensesScreen onBack={() => setPage("home")} />;
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.hero}>
@@ -172,6 +183,17 @@ export function DashboardScreen() {
         <SummaryCard label="Pending Approval" amount={summary.pendingAmount} accent="#D4A43D" backgroundColor="#FFF5D8" amountColor="#8A6300" />
         <SummaryCard label="Approved" amount={summary.approvedAmount} accent="#4AAE73" backgroundColor="#E9F8EF" amountColor="#1C6A3B" />
         <SummaryCard label="Rejected" amount={summary.rejectedAmount} accent="#D46A7D" backgroundColor="#FCE9ED" amountColor="#A53A52" />
+      </View>
+
+      <View style={styles.navRow}>
+        <TouchableOpacity onPress={() => setPage("ledger")} style={styles.navButton} {...webProps(() => setPage("ledger"))}>
+          <Text style={styles.navButtonTitle}>View Ledger</Text>
+          <Text style={styles.navButtonSub}>Day book with running balance</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setPage("users")} style={styles.navButton} {...webProps(() => setPage("users"))}>
+          <Text style={styles.navButtonTitle}>User-wise</Text>
+          <Text style={styles.navButtonSub}>Expenses, paid & balance per person</Text>
+        </TouchableOpacity>
       </View>
 
       {syncIssue ? (
@@ -271,6 +293,27 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "space-between",
     gap: 12,
+  },
+  navRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  navButton: {
+    flex: 1,
+    backgroundColor: "#2E6A49",
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    gap: 4,
+  },
+  navButtonTitle: {
+    color: "#FFFFFF",
+    fontWeight: "800",
+    fontSize: 15,
+  },
+  navButtonSub: {
+    color: "#D6EBDD",
+    fontSize: 12,
   },
   listHeader: {
     marginTop: 6,
