@@ -957,6 +957,7 @@ export async function uploadBillImage(imageUri: string, userId: string) {
 
     const { error } = await client.storage.from(billBucket).upload(path, bytes, {
       contentType: getImageMimeType(fileExt),
+            cacheControl: "31536000",
       upsert: false,
     });
 
