@@ -42,12 +42,12 @@ export function UserExpensesScreen({ onBack }: UserExpensesScreenProps) {
 
       <View style={styles.card}>
         <View style={styles.statRow}>
-          <Stat label="Expenses (approved)" value={totals.approved} />
+          <Stat label="Expenses" value={totals.approved} />
           <Stat label="Paid till date" value={totals.paid} color="#1C6A3B" />
           <Stat label="Balance due" value={totals.balance} color="#A53A52" />
         </View>
         <Text style={styles.note}>
-          Balance = approved expenses recorded by the user − amount paid to them. Payments here don't change Cash In Hand.
+          Balance = expenses recorded by the user (approved + pending, rejected excluded) − amount paid to them. Payments here don't change Cash In Hand.
         </Text>
       </View>
 
@@ -128,7 +128,7 @@ function UserCard({
           <MiniStat label="Balance" value={summary.balance} color={summary.balance > 0 ? "#A53A52" : "#215733"} />
         </View>
         {summary.pendingExpenses > 0 ? (
-          <Text style={styles.pending}>+ {formatRupees(summary.pendingExpenses)} waiting for approval</Text>
+          <Text style={styles.pending}>Includes {formatRupees(summary.pendingExpenses)} pending approval</Text>
         ) : null}
       </Pressable>
 

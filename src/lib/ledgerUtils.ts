@@ -41,11 +41,12 @@ function signed(expense: Expense) {
 }
 
 /**
- * Day book of approved entries (same basis as Cash In Hand):
+ * Day book of approved + pending entries (rejected are left out):
  * credits are receipts, debits are payments, with a running balance.
+ * Days and entries come out oldest-first; the screen reverses them for display.
  */
 export function buildDaybook(expenses: Expense[], ledgerOpeningBalance: number, fromDate = "", toDate = ""): Daybook {
-  const approved = expenses.filter((expense) => expense.status === "approved").sort(compareEntries);
+  const approved = expenses.filter((expense) => expense.status !== "rejected").sort(compareEntries);
 
   let balance = ledgerOpeningBalance;
   for (const expense of approved) {
@@ -108,7 +109,7 @@ export type UserSummary = {
 };
 
 /**
- * Per-user totals: approved expenses they recorded (debits only),
+ * Per-user totals: approved + pending expenses they recorded (debits only, rejected left out),
  * what has been paid to them, and what is still due.
  */
 export function buildUserSummaries(expenses: Expense[], payments: UserPayment[]): UserSummary[] {
@@ -140,9 +141,13 @@ export function buildUserSummaries(expenses: Expense[], payments: UserPayment[])
     if (expense.transactionType === "credit") {
       continue;
     }
-    if (expense.status === "approved") {
-      summary.approvedExpenses += expense.amount;
-    } else if (expense.status === "pending") {
+    if (expense.status === "rejected") {
+      continue;
+    }
+    // approvedExpenses = total counted towards the balance (approved + pending);
+    // pendingExpenses = the part of it still waiting for approval.
+    summary.approvedExpenses += expense.amount;
+    if (expense.status === "pending") {
       summary.pendingExpenses += expense.amount;
     }
   }

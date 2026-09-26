@@ -18,7 +18,12 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
     () => buildDaybook(expenses, ledger?.openingBalance ?? openingCashInHand, fromDate, toDate),
     [expenses, ledger, fromDate, toDate],
   );
-  const pendingCount = useMemo(() => expenses.filter((expense) => expense.status === "pending").length, [expenses]);
+  const rejectedCount = useMemo(() => expenses.filter((expense) => expense.status === "rejected").length, [expenses]);
+  // Latest first: newest day on top, newest entry on top within each day.
+  const daysNewestFirst = useMemo(
+    () => [...daybook.days].reverse().map((day) => ({ ...day, entries: [...day.entries].reverse() })),
+    [daybook],
+  );
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -41,21 +46,21 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
           <Total label="Closing" value={daybook.closingBalance} strong />
         </View>
         <Text style={styles.note}>
-          Approved entries only{pendingCount ? ` · ${pendingCount} pending not included` : ""}
+          Approved + pending entries · latest on top{rejectedCount ? ` · ${rejectedCount} rejected not included` : ""}
         </Text>
       </View>
 
       {daybook.days.length === 0 ? (
         <View style={styles.card}>
-          <Text style={styles.empty}>No approved entries in this period.</Text>
+          <Text style={styles.empty}>No entries in this period.</Text>
         </View>
       ) : null}
 
-      {daybook.days.map((day) => (
+      {daysNewestFirst.map((day) => (
         <View key={day.date} style={styles.dayCard}>
           <View style={styles.dayHeader}>
             <Text style={styles.dayDate}>{formatLedgerDate(day.date, true)}</Text>
-            <Text style={styles.dayOpening}>Opening {formatRupees(day.openingBalance)}</Text>
+            <Text style={styles.dayOpening}>Closing {formatRupees(day.closingBalance)}</Text>
           </View>
 
           <View style={styles.columnHeader}>
@@ -74,6 +79,7 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
                 <Text style={styles.entryMeta} numberOfLines={1}>
                   {[entry.expense.accountingHead, entry.expense.createdBy].filter(Boolean).join(" · ")}
                 </Text>
+                {entry.expense.status === "pending" ? <Text style={styles.pendingTag}>Pending approval</Text> : null}
               </View>
               <Text style={[styles.amount, styles.colAmount, styles.inText]}>
                 {entry.receipt ? formatRupees(entry.receipt) : ""}
@@ -86,7 +92,10 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
           ))}
 
           <View style={styles.dayFooter}>
-            <Text style={[styles.footerLabel, styles.colDesc]}>Day total</Text>
+            <Text style={[styles.footerLabel, styles.colDesc]}>
+              Day total{"\n"}
+              <Text style={styles.footerOpening}>Opening {formatRupees(day.openingBalance)}</Text>
+            </Text>
             <Text style={[styles.amount, styles.colAmount, styles.inText]}>
               {day.totalReceipts ? formatRupees(day.totalReceipts) : ""}
             </Text>
@@ -280,6 +289,23 @@ const styles = StyleSheet.create({
     color: "#6F5E50",
     fontWeight: "800",
     fontSize: 13,
+  },
+  pendingTag: {
+    alignSelf: "flex-start",
+    marginTop: 4,
+    color: "#8A6300",
+    backgroundColor: "#FFF5D8",
+    fontSize: 11,
+    fontWeight: "700",
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+    borderRadius: 6,
+    overflow: "hidden",
+  },
+  footerOpening: {
+    color: "#8A7462",
+    fontWeight: "600",
+    fontSize: 12,
   },
   closing: {
     fontWeight: "800",
