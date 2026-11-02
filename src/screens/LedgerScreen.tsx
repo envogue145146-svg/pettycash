@@ -20,18 +20,24 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
     [expenses, ledger, fromDate, toDate],
   );
   const rejectedCount = useMemo(() => expenses.filter((expense) => expense.status === "rejected").length, [expenses]);
-  // Latest first: newest day on top, newest entry on top within each day.
-  const daysNewestFirst = useMemo(
-    () => [...daybook.days].reverse().map((day) => ({ ...day, entries: [...day.entries].reverse() })),
-    [daybook],
+  // Default: latest on top. "Oldest first" reads like a cash book: opening, then the period's entries in date order.
+  const [newestFirst, setNewestFirst] = useState(true);
+  const displayDays = useMemo(
+    () =>
+      newestFirst
+        ? [...daybook.days].reverse().map((day) => ({ ...day, entries: [...day.entries].reverse() }))
+        : daybook.days,
+    [daybook, newestFirst],
   );
+  const openingLabel = fromDate ? `Opening on ${formatLedgerDate(fromDate)}` : "Opening";
+  const closingLabel = toDate ? `Closing on ${formatLedgerDate(toDate)}` : "Closing";
 
   const [printing, setPrinting] = useState(false);
   const handlePrint = async () => {
     setPrinting(true);
     try {
       await printLedger({
-        days: daysNewestFirst,
+        days: displayDays,
         openingBalance: daybook.openingBalance,
         totalReceipts: daybook.totalReceipts,
         totalPayments: daybook.totalPayments,
@@ -69,14 +75,30 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
           <DateField style={styles.dateInput} value={toDate} onChange={setToDate} placeholder="To date" allowClear />
         </View>
         <View style={styles.totalsGrid}>
-          <Total label="Opening" value={daybook.openingBalance} />
+          <Total label={openingLabel} value={daybook.openingBalance} />
           <Total label="Receipts (In)" value={daybook.totalReceipts} color="#1C6A3B" />
           <Total label="Payments (Out)" value={daybook.totalPayments} color="#A53A52" />
-          <Total label="Closing" value={daybook.closingBalance} strong />
+          <Total label={closingLabel} value={daybook.closingBalance} strong />
         </View>
         <Text style={styles.note}>
-          Approved + pending entries · latest on top{rejectedCount ? ` · ${rejectedCount} rejected not included` : ""}
+          Approved + pending entries{rejectedCount ? ` · ${rejectedCount} rejected not included` : ""}
         </Text>
+        <View style={styles.orderRow}>
+          <Pressable
+            onPress={() => setNewestFirst(true)}
+            style={[styles.orderButton, newestFirst ? styles.orderButtonActive : null]}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.orderText, newestFirst ? styles.orderTextActive : null]}>Latest first</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setNewestFirst(false)}
+            style={[styles.orderButton, !newestFirst ? styles.orderButtonActive : null]}
+            accessibilityRole="button"
+          >
+            <Text style={[styles.orderText, !newestFirst ? styles.orderTextActive : null]}>Oldest first</Text>
+          </Pressable>
+        </View>
       </View>
 
       {daybook.days.length === 0 ? (
@@ -85,11 +107,20 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
         </View>
       ) : null}
 
-      {daysNewestFirst.map((day) => (
+      {!newestFirst && daybook.days.length ? (
+        <View style={styles.broughtForward}>
+          <Text style={styles.broughtForwardText}>Opening balance{fromDate ? ` as on ${formatLedgerDate(fromDate)}` : ""}</Text>
+          <Text style={styles.broughtForwardAmount}>{formatRupees(daybook.openingBalance)}</Text>
+        </View>
+      ) : null}
+
+      {displayDays.map((day) => (
         <View key={day.date} style={styles.dayCard}>
           <View style={styles.dayHeader}>
             <Text style={styles.dayDate}>{formatLedgerDate(day.date, true)}</Text>
-            <Text style={styles.dayOpening}>Closing {formatRupees(day.closingBalance)}</Text>
+            <Text style={styles.dayOpening}>
+              {newestFirst ? `Closing ${formatRupees(day.closingBalance)}` : `Opening ${formatRupees(day.openingBalance)}`}
+            </Text>
           </View>
 
           <View style={styles.columnHeader}>
@@ -123,7 +154,9 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
           <View style={styles.dayFooter}>
             <Text style={[styles.footerLabel, styles.colDesc]}>
               Day total{"\n"}
-              <Text style={styles.footerOpening}>Opening {formatRupees(day.openingBalance)}</Text>
+              <Text style={styles.footerOpening}>
+                {newestFirst ? `Opening ${formatRupees(day.openingBalance)}` : `Closing ${formatRupees(day.closingBalance)}`}
+              </Text>
             </Text>
             <Text style={[styles.amount, styles.colAmount, styles.inText]}>
               {day.totalReceipts ? formatRupees(day.totalReceipts) : ""}
@@ -332,6 +365,47 @@ const styles = StyleSheet.create({
     color: "#6F5E50",
     fontWeight: "800",
     fontSize: 13,
+  },
+  orderRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  orderButton: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 12,
+    alignItems: "center",
+    backgroundColor: "#FFFDF9",
+    borderWidth: 1,
+    borderColor: "#E7D7C7",
+  },
+  orderButtonActive: {
+    backgroundColor: "#2E6A49",
+    borderColor: "#2E6A49",
+  },
+  orderText: {
+    color: "#6F5E50",
+    fontWeight: "700",
+  },
+  orderTextActive: {
+    color: "#FFFFFF",
+  },
+  broughtForward: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#F5E7D9",
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  broughtForwardText: {
+    color: "#2F241B",
+    fontWeight: "800",
+  },
+  broughtForwardAmount: {
+    color: "#2F241B",
+    fontWeight: "800",
   },
   pendingTag: {
     alignSelf: "flex-start",

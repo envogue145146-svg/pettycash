@@ -161,27 +161,35 @@ export function DateField({ value, onChange, placeholder, style, allowClear = fa
           <View style={styles.modalCard}>
             <View style={styles.header}>
               <Text style={styles.headerTitle}>{placeholder}</Text>
-              <Pressable
-                onPress={() => {
-                  const previous = shiftMonth(visibleMonth.year, visibleMonth.monthIndex, -1);
-                  setVisibleMonth(previous);
-                }}
-                style={styles.navButton}
-              >
-                <Text style={styles.navText}>{"<"}</Text>
-              </Pressable>
-              <Text style={styles.monthLabel}>
-                {MONTH_LABELS[visibleMonth.monthIndex]} {visibleMonth.year}
-              </Text>
-              <Pressable
-                onPress={() => {
-                  const next = shiftMonth(visibleMonth.year, visibleMonth.monthIndex, 1);
-                  setVisibleMonth(next);
-                }}
-                style={styles.navButton}
-              >
-                <Text style={styles.navText}>{">"}</Text>
-              </Pressable>
+              <View style={styles.monthRow}>
+                <Pressable
+                  onPress={() => {
+                    const previous = shiftMonth(visibleMonth.year, visibleMonth.monthIndex, -1);
+                    setVisibleMonth(previous);
+                  }}
+                  style={styles.navButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Previous month"
+                  hitSlop={8}
+                >
+                  <Text style={styles.navText}>{"<"}</Text>
+                </Pressable>
+                <Text style={styles.monthLabel}>
+                  {MONTH_LABELS[visibleMonth.monthIndex]} {visibleMonth.year}
+                </Text>
+                <Pressable
+                  onPress={() => {
+                    const next = shiftMonth(visibleMonth.year, visibleMonth.monthIndex, 1);
+                    setVisibleMonth(next);
+                  }}
+                  style={styles.navButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Next month"
+                  hitSlop={8}
+                >
+                  <Text style={styles.navText}>{">"}</Text>
+                </Pressable>
+              </View>
             </View>
 
             <View style={styles.weekdays}>
@@ -285,14 +293,19 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   monthLabel: {
+    flex: 1,
     color: "#2F241B",
     fontSize: 18,
     fontWeight: "800",
     textAlign: "center",
   },
+  monthRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
   navButton: {
-    position: "absolute",
-    top: 22,
     width: 36,
     height: 36,
     borderRadius: 18,

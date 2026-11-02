@@ -102,10 +102,10 @@ export function buildLedgerHtml(input: LedgerPrintInput) {
     <div>Printed: ${escapeHtml(printedOn)}</div>
   </div>
   <div class="summary">
-    <div><span>Opening</span><b>${escapeHtml(formatRupees(input.openingBalance))}</b></div>
+    <div><span>Opening${input.fromDate ? ` on ${escapeHtml(formatLedgerDate(input.fromDate))}` : ""}</span><b>${escapeHtml(formatRupees(input.openingBalance))}</b></div>
     <div><span>Receipts (In)</span><b class="in">${escapeHtml(formatRupees(input.totalReceipts))}</b></div>
     <div><span>Payments (Out)</span><b class="out">${escapeHtml(formatRupees(input.totalPayments))}</b></div>
-    <div><span>Closing</span><b>${escapeHtml(formatRupees(input.closingBalance))}</b></div>
+    <div><span>Closing${input.toDate ? ` on ${escapeHtml(formatLedgerDate(input.toDate))}` : ""}</span><b>${escapeHtml(formatRupees(input.closingBalance))}</b></div>
   </div>
   <table>
     <thead>
