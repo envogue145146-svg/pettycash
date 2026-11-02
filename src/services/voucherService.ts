@@ -218,7 +218,7 @@ function openPrintPreviewOnWeb(htmlContent: string) {
   }, 500);
 }
 
-async function renderVoucherDocument(htmlContent: string, title: string, mode: VoucherExportMode) {
+export async function renderVoucherDocument(htmlContent: string, title: string, mode: VoucherExportMode) {
   if (Platform.OS === "web") {
     openPrintPreviewOnWeb(htmlContent);
     return "";

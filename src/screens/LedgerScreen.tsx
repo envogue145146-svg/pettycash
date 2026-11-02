@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { DateField } from "../components/DateField";
 import { usePettyCash } from "../context/PettyCashContext";
 import { openingCashInHand } from "../data/mockData";
 import { buildDaybook, formatLedgerDate, formatRupees } from "../lib/ledgerUtils";
+import { printLedger } from "../services/ledgerPrintService";
 
 type LedgerScreenProps = {
   onBack: () => void;
@@ -25,6 +26,26 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
     [daybook],
   );
 
+  const [printing, setPrinting] = useState(false);
+  const handlePrint = async () => {
+    setPrinting(true);
+    try {
+      await printLedger({
+        days: daysNewestFirst,
+        openingBalance: daybook.openingBalance,
+        totalReceipts: daybook.totalReceipts,
+        totalPayments: daybook.totalPayments,
+        closingBalance: daybook.closingBalance,
+        fromDate,
+        toDate,
+      });
+    } catch (error) {
+      Alert.alert("Print failed", error instanceof Error ? error.message : "Unable to print the ledger.");
+    } finally {
+      setPrinting(false);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.topBar}>
@@ -32,6 +53,14 @@ export function LedgerScreen({ onBack }: LedgerScreenProps) {
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
         <Text style={styles.title}>Ledger · Day Book</Text>
+        <Pressable
+          onPress={() => void handlePrint()}
+          disabled={printing}
+          style={[styles.printButton, printing ? styles.printDisabled : null]}
+          accessibilityRole="button"
+        >
+          <Text style={styles.printText}>{printing ? "Preparing…" : "Print"}</Text>
+        </Pressable>
       </View>
 
       <View style={styles.card}>
@@ -145,6 +174,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "800",
     flexShrink: 1,
+    flex: 1,
+  },
+  printButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 14,
+    backgroundColor: "#2E6A49",
+  },
+  printDisabled: {
+    opacity: 0.6,
+  },
+  printText: {
+    color: "#FFFFFF",
+    fontWeight: "800",
   },
   card: {
     backgroundColor: "#FDF6EE",
